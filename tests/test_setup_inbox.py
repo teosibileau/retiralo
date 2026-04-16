@@ -37,10 +37,10 @@ def fake_inbox():
 def test_fails_without_api_key(env_path):
     env_path.write_text("AGENTMAIL_INBOX_ID=\n")
 
-    result = runner.invoke(setup_inbox.app, [])
+    result = runner.invoke(setup_inbox.app, [], catch_exceptions=False)
 
     assert result.exit_code == 1
-    assert "AGENTMAIL_API_KEY not set" in result.output
+    assert "AGENTMAIL_API_KEY not set" in result.stderr
 
 
 @patch("setup_inbox.AgentMail")

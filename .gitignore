@@ -5,5 +5,7 @@ __pycache__/
 *.pyc
 state/
 *.png
+*.jpg
+node_modules/
 .thoughs
 .thoughs/*
