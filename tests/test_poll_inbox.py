@@ -29,6 +29,9 @@ def env_path(tmp_path, monkeypatch):
     path = tmp_path / ".env"
     path.write_text(ENV_CONTENT)
     monkeypatch.setattr(poll_inbox, "ENV_PATH", path)
+    monkeypatch.setenv("AGENTMAIL_API_KEY", "am_test_key")
+    monkeypatch.setenv("AGENTMAIL_INBOX_ID", "test@agentmail.to")
+    monkeypatch.setenv("EMAIL_FROM", "teo@gmail.com")
     return path
 
 
@@ -70,6 +73,9 @@ def test_fails_without_env_vars(tmp_path, monkeypatch):
     path = tmp_path / ".env"
     path.write_text("")
     monkeypatch.setattr(poll_inbox, "ENV_PATH", path)
+    monkeypatch.delenv("AGENTMAIL_API_KEY", raising=False)
+    monkeypatch.delenv("AGENTMAIL_INBOX_ID", raising=False)
+    monkeypatch.delenv("EMAIL_FROM", raising=False)
 
     result = runner.invoke(poll_inbox.app, ["find"])
 

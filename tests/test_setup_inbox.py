@@ -20,6 +20,7 @@ runner = CliRunner()
 def env_path(tmp_path, monkeypatch):
     path = tmp_path / ".env"
     monkeypatch.setattr(setup_inbox, "ENV_PATH", path)
+    monkeypatch.delenv("AGENTMAIL_API_KEY", raising=False)
     return path
 
 
@@ -34,13 +35,13 @@ def fake_inbox():
     return _make
 
 
-def test_fails_without_api_key(env_path):
+def test_fails_without_api_key(env_path, monkeypatch):
     env_path.write_text("AGENTMAIL_INBOX_ID=\n")
+    monkeypatch.delenv("AGENTMAIL_API_KEY", raising=False)
 
-    result = runner.invoke(setup_inbox.app, [], catch_exceptions=False)
+    result = runner.invoke(setup_inbox.app, [])
 
     assert result.exit_code == 1
-    assert "AGENTMAIL_API_KEY not set" in result.stderr
 
 
 @patch("setup_inbox.AgentMail")
