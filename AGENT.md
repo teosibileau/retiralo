@@ -8,13 +8,16 @@ emails and send the Andreani QR code + a friendly caption to WhatsApp.
 If `.env` does not exist, guide the user through setup one step at a time.
 Wait for the user's answer before moving to the next step.
 
-### Step 1: Install system dependencies
+### Step 1: Check toolchain
 
-The `andreani-qr` library requires `libzbar` to be installed on the system.
-Ask the user to install it:
+Verify each tool is available by running `which` for each. If any are missing,
+tell the user how to install them and wait before continuing:
 
-- **macOS:** `brew install zbar`
-- **Ubuntu/Debian:** `sudo apt-get install -y libzbar0`
+- **pyenv** — `brew install pyenv` (macOS) or https://github.com/pyenv/pyenv#installation
+- **Python 3.12+** — `pyenv install 3.12` then `pyenv local 3.12`
+- **pipx** — `brew install pipx` (macOS) or `python -m pip install --user pipx`
+- **poetry** — `pipx install poetry`
+- **libzbar** — `brew install zbar` (macOS) or `sudo apt-get install -y libzbar0` (Ubuntu/Debian)
 
 ### Step 2: Install Python dependencies
 

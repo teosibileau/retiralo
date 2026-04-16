@@ -13,8 +13,9 @@ A Claude Code agent that watches for MercadoLibre Andreani pickup emails, extrac
 ## Prerequisites
 
 - [Claude Code](https://claude.ai/code) CLI or desktop app
-- Python 3.12+
-- [Poetry](https://python-poetry.org/)
+- [pyenv](https://github.com/pyenv/pyenv) for managing Python versions (Python 3.12+ required)
+- [pipx](https://pipx.pypa.io/) for installing CLI tools in isolated environments
+- [Poetry](https://python-poetry.org/) (`pipx install poetry`)
 - `libzbar` system library (macOS: `brew install zbar`, Ubuntu: `sudo apt-get install -y libzbar0`)
 - A Gmail account with MercadoLibre purchase notifications
 - An [AgentMail](https://agentmail.to) account ([docs](https://docs.agentmail.to))
