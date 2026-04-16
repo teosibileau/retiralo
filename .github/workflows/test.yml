@@ -3,7 +3,17 @@ name: Test
 on:
   push:
     branches: [main]
+    paths:
+      - "scripts/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "poetry.lock"
   pull_request:
+    paths:
+      - "scripts/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "poetry.lock"
 
 jobs:
   pytest:
