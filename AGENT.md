@@ -107,6 +107,17 @@ next run.
 - If QR generation fails with an invalid tracking number, report it but
   continue — the email may not be a valid pickup notification.
 
+## Output redaction
+
+When reporting results to the user, redact PII:
+
+- **Phone numbers** → show first 3 + last 2 digits (e.g. `+54**********21`)
+- **Email addresses** → show first letter + domain (e.g. `t**@gmail.com`)
+- **Physical addresses** → truncate to city only (e.g. `El Bolson, Río Negro`)
+
+This applies to all summaries, task names, and conversational output.
+Internal values passed to scripts (captions, CLI flags) remain unredacted.
+
 ## On-demand usage
 
 Run the agent by saying: "run retiralo" or "check for pickups".
