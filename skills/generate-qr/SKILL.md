@@ -5,25 +5,21 @@ description: Generate an Andreani QR code PNG from a tracking number using the a
 
 # generate-qr
 
-Entry point: `scripts/generate_qr.py` (Typer CLI).
+Entry point: `${CLAUDE_PLUGIN_ROOT}/scripts/generate_qr.py` (Typer CLI).
+Always invoke from the plugin root so poetry finds `pyproject.toml`.
 
 ## Usage
 
 ```sh
 # From tracking number directly:
-poetry run scripts/generate_qr.py --tracking 360002939006860
-
-# Piped from extract-tracking:
-poetry run scripts/extract_tracking.py --text "..." | poetry run scripts/generate_qr.py
-
-# Full pipe from inbox:
-poetry run scripts/poll_inbox.py show <id> | poetry run scripts/extract_tracking.py | poetry run scripts/generate_qr.py
+cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/generate_qr.py --tracking 360002939006860
 ```
 
 ## Output
 
-Prints the absolute path to the generated PNG on stdout (e.g. `/path/to/state/360002939006860.png`).
-PNGs are saved to `state/` by default (override with `-o`).
+Prints the absolute path to the generated PNG on stdout (e.g.
+`${CLAUDE_PLUGIN_ROOT}/state/360002939006860.png`). PNGs are saved to
+`${CLAUDE_PLUGIN_ROOT}/state/` by default (override with `-o`).
 
 ## How the agent loop uses it
 
