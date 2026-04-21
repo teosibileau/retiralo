@@ -12,15 +12,22 @@ are considered, so arbitrary senders to the AgentMail address are ignored.
 
 ## Commands
 
+**Important:** the AgentMail `message_id` is an RFC Message-ID and includes the
+literal `<` and `>` characters (e.g. `<CAGTiWNt...@mail.gmail.com>`). Pass it
+to `show`/`mark-read` **exactly as returned by `find`** — including the angle
+brackets — wrapped in **single quotes** so the shell does not interpret `<>`
+as redirection or `+`/`@` specially. Do not strip the brackets and do not
+substitute placeholder `<message_id>` syntax; use the real id verbatim.
+
 ```sh
 # 1) Find unread matches (read-only). Outputs JSON array.
 poetry run scripts/poll_inbox.py find [--limit 50]
 
 # 2) Fetch full text body of one message (downstream extract-tracking uses this).
-poetry run scripts/poll_inbox.py show <message_id>
+poetry run scripts/poll_inbox.py show '<CAGTiWNt...@mail.gmail.com>'
 
 # 3) Mark one message as read (removes "unread" label — our done-state).
-poetry run scripts/poll_inbox.py mark-read <message_id>
+poetry run scripts/poll_inbox.py mark-read '<CAGTiWNt...@mail.gmail.com>'
 
 # Testing convenience: find + auto-mark-read in one call.
 poetry run scripts/poll_inbox.py find --mark-read
