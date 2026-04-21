@@ -5,7 +5,8 @@ description: Find unread, authorized MercadoLibre pickup emails in the retiralo 
 
 # inbox-poll
 
-Entry point: `scripts/poll_inbox.py` (Typer CLI).
+Entry point: `${CLAUDE_PLUGIN_ROOT}/scripts/poll_inbox.py` (Typer CLI).
+Always invoke from the plugin root so poetry finds `pyproject.toml`.
 
 Security gate: only messages whose `from` contains `EMAIL_FROM` (set in `.env`)
 are considered, so arbitrary senders to the AgentMail address are ignored.
@@ -21,16 +22,16 @@ substitute placeholder `<message_id>` syntax; use the real id verbatim.
 
 ```sh
 # 1) Find unread matches (read-only). Outputs JSON array.
-poetry run scripts/poll_inbox.py find [--limit 50]
+cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/poll_inbox.py find [--limit 50]
 
 # 2) Fetch full text body of one message (downstream extract-tracking uses this).
-poetry run scripts/poll_inbox.py show '<CAGTiWNt...@mail.gmail.com>'
+cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/poll_inbox.py show '<CAGTiWNt...@mail.gmail.com>'
 
 # 3) Mark one message as read (removes "unread" label — our done-state).
-poetry run scripts/poll_inbox.py mark-read '<CAGTiWNt...@mail.gmail.com>'
+cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/poll_inbox.py mark-read '<CAGTiWNt...@mail.gmail.com>'
 
 # Testing convenience: find + auto-mark-read in one call.
-poetry run scripts/poll_inbox.py find --mark-read
+cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/poll_inbox.py find --mark-read
 ```
 
 ## Match rules

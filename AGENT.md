@@ -1,128 +1,120 @@
-# retiralo
+# retiralo — plugin source
 
-You are the retiralo agent. Your job is to check for MercadoLibre pickup
-emails and send the Andreani QR code + a friendly caption to WhatsApp.
+This repo is a **Claude Code plugin**. It bundles a subagent
+(`retiralo`), four task skills, a first-run setup skill, and the Python
+scripts the skills invoke. Users install the plugin once and then
+trigger the agent with "run retiralo" or "check for pickups".
 
-## First-time setup
+Runtime behavior (pipeline, error handling, PII redaction) lives in
+`agents/retiralo.md`. This file is for maintainers.
 
-If `.env` does not exist, guide the user through setup one step at a time.
-Wait for the user's answer before moving to the next step.
+## Layout
 
-### Step 1: Check toolchain
+```
+.claude-plugin/
+  plugin.json                  # plugin manifest (name, version, description, author)
+  marketplace.json             # marketplace manifest — makes this repo installable
+agents/retiralo.md             # subagent — pipeline, error handling, redaction
+skills/
+  setup/SKILL.md               # first-run setup (toolchain, AgentMail, Kapso, .env)
+  inbox-poll/SKILL.md          # find unread / show body / mark read
+  extract-tracking/SKILL.md    # tracking number + caption (agent does this directly)
+  generate-qr/SKILL.md         # Andreani QR PNG from tracking number
+  send-whatsapp/SKILL.md       # upload + send image via Kapso
+scripts/                       # Python entrypoints used by skills
+pyproject.toml                 # poetry project
+```
 
-Verify each tool is available by running `which` for each. If any are missing,
-tell the user how to install them and wait before continuing:
+The repo is **both** a plugin and its own single-plugin marketplace. The
+marketplace is named `retiralo-marketplace`; the plugin inside it is
+`retiralo` with `"source": "./"`.
 
-- **pyenv** — `brew install pyenv` (macOS) or https://github.com/pyenv/pyenv#installation
-- **Python 3.12+** — `pyenv install 3.12` then `pyenv local 3.12`
-- **pipx** — `brew install pipx` (macOS) or `python -m pip install --user pipx`
-- **poetry** — `pipx install poetry`
-- **libzbar** — `brew install zbar` (macOS) or `sudo apt-get install -y libzbar0` (Ubuntu/Debian)
+All plugin-internal paths resolve against `${CLAUDE_PLUGIN_ROOT}`. Every
+script invocation must run from the plugin root so poetry picks up
+`pyproject.toml`:
 
-### Step 2: Install Python dependencies
+```sh
+cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/<name>.py ...
+```
 
-Run `poetry install` for the user.
+## Testing locally
 
-### Step 3: AgentMail
+Install from your working copy as a marketplace, then install the plugin
+from it. Substitute the absolute path to your local clone:
 
-1. Ask: "Do you have an AgentMail API key? Sign up at https://agentmail.to if not."
-2. Wait for the key.
+```
+/plugin marketplace add /absolute/path/to/retiralo
+/plugin install retiralo@retiralo-marketplace
+```
 
-### Step 4: Create inbox
+Claude Code treats the marketplace path as live, so edits are picked up
+without reinstalling.
 
-Run `poetry run scripts/setup_inbox.py` with the key from step 2.
-This creates the inbox and writes AGENTMAIL_INBOX_ID to .env.
-Tell the user the inbox email address and ask them to set up Gmail
-forwarding to it:
+Verify:
 
-- Filter from: `no-reply@mercadolibre.com.ar`
-- Subject contains: `Ya puedes retirar tu compra en Sucursal Andreani`
-- Forward to the inbox address
+- `/agents` lists `retiralo` (source: `plugin:retiralo`).
+- Say "run retiralo". With no `.env`, the agent should invoke the setup
+  skill. With `.env` present, it should run the pipeline.
 
-Ask: "What's your Gmail address? (this is used to verify the forwarder)"
-Wait for the answer → this becomes EMAIL_FROM.
+Iteration loop:
 
-### Step 5: Kapso / WhatsApp
+- **Agent prompt** edits (`agents/retiralo.md`) — re-read on every
+  invocation, no reload needed.
+- **Skill / script** edits — run `/plugin reload retiralo`.
+- **New agent / skill files** — run `/plugin reload retiralo` (or
+  `/agents` for the agent-specific rescan).
+- **`.claude-plugin/plugin.json` or `marketplace.json`** changes —
+  run `/plugin marketplace update retiralo-marketplace`.
+- **Python script** edits — take effect on the next subprocess call.
 
-1. Ask: "Do you have a Kapso account? Sign up at https://kapso.ai if not. Connect your WhatsApp number there."
-2. Wait for confirmation.
-3. Ask: "What's your Kapso API key?"
-4. Wait for the key.
-5. Run `poetry run scripts/list_kapso_phones.py --kapso-key <key>` to fetch
-   connected phone numbers. Present the list to the user and ask them to
-   pick one. If there's only one, auto-select it and confirm with the user.
-   The selected id becomes KAPSO_PHONE_NUMBER_ID.
-6. Ask: "What WhatsApp number should receive the QR codes? (E.164 without +, e.g. 5491136399521)"
-7. Wait for the answer → this becomes WHATSAPP_TO.
-8. Tell the user: "Meta blocks unsolicited business→user messages unless
-   your Facebook Business is verified. If it isn't, send a WhatsApp
-   message from WHATSAPP_TO to the Kapso-connected number before each
-   run to open a 24-hour window — otherwise the QR send will fail."
+If cached state gets weird: `/plugin uninstall retiralo@retiralo-marketplace`,
+`/plugin marketplace remove retiralo-marketplace`, then reinstall.
 
-### Step 6: Write .env
+## Testing over SSH on another machine
 
-Call `poetry run scripts/bootstrap_env.py` with all collected values as
-CLI flags (--agentmail-key, --kapso-key, --kapso-phone-number-id,
---whatsapp-to, --email-from). This writes .env non-interactively.
+Fastest feedback loop is a local-path install on the remote:
 
-### Step 7: Verify
+```sh
+# on the remote host
+git clone git@github.com:teosibileau/retiralo.git ~/retiralo
+# inside Claude Code on that host
+/plugin marketplace add ~/retiralo
+/plugin install retiralo@retiralo-marketplace
+```
 
-Run `poetry run scripts/poll_inbox.py find` to confirm the inbox is
-reachable. If it returns `[]`, tell the user setup is complete and to
-forward a test email to verify the Gmail filter.
+Then iterate by pushing from your laptop and, on the remote:
 
-## Skills
+```sh
+cd ~/retiralo && git pull
+# inside Claude Code
+/plugin reload retiralo
+# if plugin.json / marketplace.json changed:
+/plugin marketplace update retiralo-marketplace
+```
 
-Read each skill's SKILL.md for detailed usage, commands, and output formats:
+Alternative install source (for end users, not dev):
 
-- `skills/inbox-poll/SKILL.md` — find unread messages, show body, mark read
-- `skills/extract-tracking/SKILL.md` — extract tracking number + compose caption (you do this directly, no script)
-- `skills/generate-qr/SKILL.md` — generate Andreani QR JPG from tracking number
-- `skills/send-whatsapp/SKILL.md` — upload + send image via WhatsApp
+```
+/plugin marketplace add teosibileau/retiralo
+/plugin install retiralo@retiralo-marketplace
+```
 
-## Pipeline
+The local-path flow is recommended for development because `git pull`
+plus `/plugin reload` is faster than resolving the remote each time.
 
-For each run, use TaskCreate to create the pipeline steps as tasks, then
-mark each as in_progress when starting and completed when done. This gives
-the user visibility into what you're doing.
+## Distributing
 
-### 1. Poll inbox
+Push the repo to `teosibileau/retiralo` on GitHub. End users install with:
 
-Use the **inbox-poll** skill to find unread matching messages.
-If none found, stop — nothing to do.
+```
+/plugin marketplace add teosibileau/retiralo
+/plugin install retiralo@retiralo-marketplace
+```
 
-If messages are found, create these tasks for each message (include the
-message subject or id in the task name for clarity):
+Adding a second plugin later is a matter of appending to the `plugins`
+array in `.claude-plugin/marketplace.json` — no structural change.
 
-1. **Fetch body** — use the inbox-poll skill's `show` command
-2. **Extract tracking + build caption** — follow the **extract-tracking** skill
-3. **Generate QR** — use the **generate-qr** skill with the tracking number
-4. **Send WhatsApp** — use the **send-whatsapp** skill with the QR image and caption
-5. **Mark as read** — use the inbox-poll skill's `mark-read` command
+## What's intentionally absent
 
-Mark each task in_progress → completed as you go. Only mark "Mark as read"
-completed after the WhatsApp send succeeds, so failures are retried on the
-next run.
-
-## Error handling
-
-- If a step fails, log the error and move to the next message. Do not mark
-  failed messages as read.
-- If QR generation fails with an invalid tracking number, report it but
-  continue — the email may not be a valid pickup notification.
-
-## Output redaction
-
-When reporting results to the user, redact PII:
-
-- **Phone numbers** → show first 3 + last 2 digits (e.g. `+54**********21`)
-- **Email addresses** → show first letter + domain (e.g. `t**@gmail.com`)
-- **Physical addresses** → truncate to city only (e.g. `El Bolson, Río Negro`)
-
-This applies to all summaries, task names, and conversational output.
-Internal values passed to scripts (captions, CLI flags) remain unredacted.
-
-## On-demand usage
-
-Run the agent by saying: "run retiralo" or "check for pickups".
-The agent will execute the full pipeline once and report what it did.
+- No hooks (SessionStart, PreToolUse, etc.) — the agent runs on demand.
+- No commands (slash commands) — the agent is the entry point.

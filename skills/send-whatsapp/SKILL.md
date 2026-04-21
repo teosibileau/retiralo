@@ -5,22 +5,15 @@ description: Send an image (QR code) via WhatsApp using the Kapso API. Uploads t
 
 # send-whatsapp
 
-Entry point: `scripts/send_whatsapp.py` (Typer CLI).
+Entry point: `${CLAUDE_PLUGIN_ROOT}/scripts/send_whatsapp.py` (Typer CLI).
+Always invoke from the plugin root so poetry finds `pyproject.toml`.
 
 ## Usage
 
 ```sh
-# Direct:
-poetry run scripts/send_whatsapp.py --image state/360002939006860.png --caption "Retiralo: 360002939006860"
-
-# Piped from generate-qr (reads path from stdin):
-echo 360002939006860 | poetry run scripts/generate_qr.py | poetry run scripts/send_whatsapp.py
-
-# Full pipeline:
-poetry run scripts/poll_inbox.py show <id> \
-  | poetry run scripts/extract_tracking.py \
-  | poetry run scripts/generate_qr.py \
-  | poetry run scripts/send_whatsapp.py
+cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/send_whatsapp.py \
+    --image ${CLAUDE_PLUGIN_ROOT}/state/360002939006860.png \
+    --caption "Retiralo: 360002939006860"
 ```
 
 ## How it works

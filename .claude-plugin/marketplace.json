@@ -1,0 +1,14 @@
+{
+  "name": "retiralo-marketplace",
+  "owner": {
+    "name": "Teofilo Sibileau"
+  },
+  "plugins": [
+    {
+      "name": "retiralo",
+      "source": "./",
+      "description": "Check MercadoLibre pickup emails and send the Andreani QR code + caption to WhatsApp.",
+      "version": "0.1.0"
+    }
+  ]
+}

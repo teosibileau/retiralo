@@ -1,0 +1,8 @@
+{
+  "name": "retiralo",
+  "version": "0.1.0",
+  "description": "Check MercadoLibre pickup emails and send the Andreani QR code + caption to WhatsApp.",
+  "author": {
+    "name": "Teofilo Sibileau"
+  }
+}
