@@ -35,3 +35,15 @@ No third-party hosting or public URLs involved.
 - `KAPSO_API_KEY`
 - `KAPSO_PHONE_NUMBER_ID`
 - `WHATSAPP_TO`
+
+## Meta business-initiation constraint
+
+Kapso sends through Meta's WhatsApp Cloud API, which disallows unsolicited
+business→user messages unless the Facebook Business is verified. Without
+verification, the recipient must message the business number first to open
+a 24-hour service window; sends outside that window will fail or require a
+pre-approved template.
+
+To avoid this: either complete Business Verification in Meta Business
+Manager, or send any message from `WHATSAPP_TO` to the Kapso-connected
+number before each run (the 24h window resets on every inbound message).
