@@ -54,6 +54,10 @@ Wait for the answer → this becomes EMAIL_FROM.
    The selected id becomes KAPSO_PHONE_NUMBER_ID.
 6. Ask: "What WhatsApp number should receive the QR codes? (E.164 without +, e.g. 5491136399521)"
 7. Wait for the answer → this becomes WHATSAPP_TO.
+8. Tell the user: "Meta blocks unsolicited business→user messages unless
+   your Facebook Business is verified. If it isn't, send a WhatsApp
+   message from WHATSAPP_TO to the Kapso-connected number before each
+   run to open a 24-hour window — otherwise the QR send will fail."
 
 ### Step 6: Write .env
 
