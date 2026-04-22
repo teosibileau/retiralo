@@ -105,7 +105,7 @@ restriction.
 ## Development
 
 See [`AGENT.md`](./AGENT.md) for the plugin layout, local-test install,
-SSH iteration loop, and publishing notes.
+and publishing notes.
 
 ```sh
 poetry install

@@ -1,120 +1,77 @@
 # retiralo — plugin source
 
-This repo is a **Claude Code plugin**. It bundles a subagent
-(`retiralo`), four task skills, a first-run setup skill, and the Python
-scripts the skills invoke. Users install the plugin once and then
-trigger the agent with "run retiralo" or "check for pickups".
-
-Runtime behavior (pipeline, error handling, PII redaction) lives in
-`agents/retiralo.md`. This file is for maintainers.
+This repo is a **Claude Code plugin** and its own single-plugin
+**marketplace**. End users install it via the commands in `README.md`.
+This file is for contributors and maintainers.
 
 ## Layout
 
 ```
 .claude-plugin/
-  plugin.json                  # plugin manifest (name, version, description, author)
-  marketplace.json             # marketplace manifest — makes this repo installable
+  plugin.json                  # plugin manifest
+  marketplace.json             # marketplace manifest (makes this repo installable)
 agents/retiralo.md             # subagent — pipeline, error handling, redaction
 skills/
   setup/SKILL.md               # first-run setup (toolchain, AgentMail, Kapso, .env)
-  inbox-poll/SKILL.md          # find unread / show body / mark read
-  extract-tracking/SKILL.md    # tracking number + caption (agent does this directly)
-  generate-qr/SKILL.md         # Andreani QR PNG from tracking number
-  send-whatsapp/SKILL.md       # upload + send image via Kapso
+  inbox-poll/SKILL.md
+  extract-tracking/SKILL.md
+  generate-qr/SKILL.md
+  send-whatsapp/SKILL.md
 scripts/                       # Python entrypoints used by skills
 pyproject.toml                 # poetry project
 ```
 
-The repo is **both** a plugin and its own single-plugin marketplace. The
-marketplace is named `retiralo-marketplace`; the plugin inside it is
-`retiralo` with `"source": "./"`.
+- Marketplace name: `retiralo-marketplace` (declared in `marketplace.json`).
+- Plugin name: `retiralo` (declared in `plugin.json`), `source: "./"`.
+- Runtime behavior (pipeline, error handling, PII redaction) lives in
+  `agents/retiralo.md`.
+- All plugin-internal paths resolve against `${CLAUDE_PLUGIN_ROOT}`.
+  Scripts run from the plugin root so poetry finds `pyproject.toml`:
+  ```sh
+  cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/<name>.py ...
+  ```
 
-All plugin-internal paths resolve against `${CLAUDE_PLUGIN_ROOT}`. Every
-script invocation must run from the plugin root so poetry picks up
-`pyproject.toml`:
+## Local dev loop
 
-```sh
-cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/<name>.py ...
-```
-
-## Testing locally
-
-Install from your working copy as a marketplace, then install the plugin
-from it. Substitute the absolute path to your local clone:
+Install from your local clone (works the same on any machine that has
+the repo cloned — laptop, remote host over SSH, doesn't matter):
 
 ```
-/plugin marketplace add /absolute/path/to/retiralo
+/plugin marketplace add /absolute/path/to/your/clone
 /plugin install retiralo@retiralo-marketplace
 ```
 
-Claude Code treats the marketplace path as live, so edits are picked up
-without reinstalling.
+Claude Code reads the files live, so edits propagate without
+reinstalling. What each kind of edit needs:
 
-Verify:
+| Edit                               | What to run                                       |
+| ---------------------------------- | ------------------------------------------------- |
+| `agents/retiralo.md` prompt        | nothing — re-read per invocation                  |
+| Skill or script content            | `/plugin reload retiralo`                         |
+| New agent / skill file             | `/plugin reload retiralo`                         |
+| `plugin.json` / `marketplace.json` | `/plugin marketplace update retiralo-marketplace` |
 
-- `/agents` lists `retiralo` (source: `plugin:retiralo`).
-- Say "run retiralo". With no `.env`, the agent should invoke the setup
-  skill. With `.env` present, it should run the pipeline.
+If state gets weird: `/plugin uninstall retiralo@retiralo-marketplace`
+and `/plugin marketplace remove retiralo-marketplace`, then reinstall.
 
-Iteration loop:
+**Two-session workflow** is practical: one session inside the repo for
+editing, another session anywhere else with the plugin installed for
+testing. Edits in session A are visible to session B after a reload.
 
-- **Agent prompt** edits (`agents/retiralo.md`) — re-read on every
-  invocation, no reload needed.
-- **Skill / script** edits — run `/plugin reload retiralo`.
-- **New agent / skill files** — run `/plugin reload retiralo` (or
-  `/agents` for the agent-specific rescan).
-- **`.claude-plugin/plugin.json` or `marketplace.json`** changes —
-  run `/plugin marketplace update retiralo-marketplace`.
-- **Python script** edits — take effect on the next subprocess call.
+## Publishing
 
-If cached state gets weird: `/plugin uninstall retiralo@retiralo-marketplace`,
-`/plugin marketplace remove retiralo-marketplace`, then reinstall.
-
-## Testing over SSH on another machine
-
-Fastest feedback loop is a local-path install on the remote:
-
-```sh
-# on the remote host
-git clone git@github.com:teosibileau/retiralo.git ~/retiralo
-# inside Claude Code on that host
-/plugin marketplace add ~/retiralo
-/plugin install retiralo@retiralo-marketplace
-```
-
-Then iterate by pushing from your laptop and, on the remote:
-
-```sh
-cd ~/retiralo && git pull
-# inside Claude Code
-/plugin reload retiralo
-# if plugin.json / marketplace.json changed:
-/plugin marketplace update retiralo-marketplace
-```
-
-Alternative install source (for end users, not dev):
+Push the repo to `teosibileau/retiralo` on GitHub. End users then follow
+`README.md`:
 
 ```
 /plugin marketplace add teosibileau/retiralo
 /plugin install retiralo@retiralo-marketplace
 ```
 
-The local-path flow is recommended for development because `git pull`
-plus `/plugin reload` is faster than resolving the remote each time.
-
-## Distributing
-
-Push the repo to `teosibileau/retiralo` on GitHub. End users install with:
-
-```
-/plugin marketplace add teosibileau/retiralo
-/plugin install retiralo@retiralo-marketplace
-```
-
-Adding a second plugin later is a matter of appending to the `plugins`
-array in `.claude-plugin/marketplace.json` — no structural change.
+Adding a second plugin later means appending to the `plugins` array in
+`.claude-plugin/marketplace.json` — no structural change.
 
 ## What's intentionally absent
 
 - No hooks (SessionStart, PreToolUse, etc.) — the agent runs on demand.
-- No commands (slash commands) — the agent is the entry point.
+- No slash commands — the agent is the entry point.
