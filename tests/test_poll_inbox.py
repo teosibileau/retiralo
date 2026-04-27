@@ -17,11 +17,7 @@ import poll_inbox  # noqa: E402
 
 runner = CliRunner()
 
-ENV_CONTENT = (
-    "AGENTMAIL_API_KEY=am_test_key\n"
-    "AGENTMAIL_INBOX_ID=test@agentmail.to\n"
-    "EMAIL_FROM=teo@gmail.com\n"
-)
+ENV_CONTENT = "AGENTMAIL_API_KEY=am_test_key\nAGENTMAIL_INBOX_ID=test@agentmail.to\n"
 
 
 @pytest.fixture()
@@ -31,7 +27,6 @@ def env_path(tmp_path, monkeypatch):
     monkeypatch.setattr(poll_inbox, "ENV_PATH", path)
     monkeypatch.setenv("AGENTMAIL_API_KEY", "am_test_key")
     monkeypatch.setenv("AGENTMAIL_INBOX_ID", "test@agentmail.to")
-    monkeypatch.setenv("EMAIL_FROM", "teo@gmail.com")
     return path
 
 
@@ -40,8 +35,8 @@ def fake_message():
     def _make(
         message_id="<msg1@mail.gmail.com>",
         thread_id="thread-1",
-        from_="Teo <teo@gmail.com>",
-        subject="Fwd: Ya puedes retirar tu compra en Sucursal Andreani",
+        from_="Mercado Libre <no-reply@mercadolibre.com.ar>",
+        subject="Ya puedes retirar tu compra en Sucursal Andreani",
         timestamp=None,
         text="some body text",
     ):
@@ -75,7 +70,6 @@ def test_fails_without_env_vars(tmp_path, monkeypatch):
     monkeypatch.setattr(poll_inbox, "ENV_PATH", path)
     monkeypatch.delenv("AGENTMAIL_API_KEY", raising=False)
     monkeypatch.delenv("AGENTMAIL_INBOX_ID", raising=False)
-    monkeypatch.delenv("EMAIL_FROM", raising=False)
 
     result = runner.invoke(poll_inbox.app, ["find"])
 
@@ -203,7 +197,7 @@ def test_find_sender_match_is_case_insensitive(
     mock_cls, env_path, fake_message, fake_list_response
 ):
     mock_cls.return_value.inboxes.messages.list.return_value = fake_list_response(
-        messages=[fake_message(from_="Teo <TEO@GMAIL.COM>")]
+        messages=[fake_message(from_="Mercado Libre <NO-REPLY@MERCADOLIBRE.COM.AR>")]
     )
 
     result = runner.invoke(poll_inbox.app, ["find"])

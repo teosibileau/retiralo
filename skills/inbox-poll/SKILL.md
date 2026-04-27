@@ -8,8 +8,10 @@ description: Find unread, authorized MercadoLibre pickup emails in the retiralo 
 Entry point: `${CLAUDE_PLUGIN_ROOT}/scripts/poll_inbox.py` (Typer CLI).
 Always invoke from the plugin root so poetry finds `pyproject.toml`.
 
-Security gate: only messages whose `from` contains `EMAIL_FROM` (set in `.env`)
-are considered, so arbitrary senders to the AgentMail address are ignored.
+Security gate: only messages whose `from` contains
+`no-reply@mercadolibre.com.ar` are considered. The sender is hardcoded
+and not configurable, so arbitrary senders to the AgentMail address are
+ignored.
 
 ## Commands
 
@@ -39,7 +41,7 @@ cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/poll_inbox.py find --mark-read
 A message is a hit when all three hold:
 
 - it has the `unread` label (server-side state, no local file needed)
-- `from` contains `EMAIL_FROM`
+- `from` contains `no-reply@mercadolibre.com.ar`
 - `subject` contains `Ya puedes retirar tu compra en Sucursal Andreani`
 
 ## find output shape
