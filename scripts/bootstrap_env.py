@@ -7,8 +7,7 @@ Non-interactive (called by the agent with all values collected):
         --agentmail-key am_us_... \
         --kapso-key 7b43... \
         --kapso-phone-number-id 1045... \
-        --whatsapp-to 5491... \
-        --email-from you@gmail.com
+        --whatsapp-to 5491...
 
 Safe by default: skips if .env exists. Use --force to overwrite.
 """
@@ -38,9 +37,6 @@ def main(
     whatsapp_to: str = typer.Option(
         ..., "--whatsapp-to", help="Destination number, E.164 without +."
     ),
-    email_from: str = typer.Option(
-        ..., "--email-from", help="Authorized forwarder address."
-    ),
 ) -> None:
     """Write .env with the provided values."""
     if ENV_PATH.exists() and not force:
@@ -55,7 +51,6 @@ def main(
         "KAPSO_API_KEY": kapso_key.strip(),
         "KAPSO_PHONE_NUMBER_ID": kapso_phone_number_id.strip(),
         "WHATSAPP_TO": whatsapp_to.strip(),
-        "EMAIL_FROM": email_from.strip().lower(),
         "AGENTMAIL_INBOX_ID": "",
     }
     body = "".join(f"{k}={v}\n" for k, v in values.items())

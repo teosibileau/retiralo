@@ -54,8 +54,9 @@ forwarding to it:
 - Subject contains: `Ya puedes retirar tu compra en Sucursal Andreani`
 - Forward to the inbox address
 
-Ask: "What's your Gmail address? (used to verify the forwarder)"
-Wait for the answer → this becomes `EMAIL_FROM`.
+The agent matches messages whose `from` contains
+`no-reply@mercadolibre.com.ar`, so direct sends from MercadoLibre and
+forwarded copies that preserve the original sender both work.
 
 ## Step 5: Kapso / WhatsApp
 
@@ -84,8 +85,7 @@ cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/bootstrap_env.py \
     --agentmail-key <key> \
     --kapso-key <key> \
     --kapso-phone-number-id <id> \
-    --whatsapp-to <number> \
-    --email-from <address>
+    --whatsapp-to <number>
 ```
 
 Writes `${CLAUDE_PLUGIN_ROOT}/.env` non-interactively.

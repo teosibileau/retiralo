@@ -23,8 +23,6 @@ VALID_ARGS = [
     "12345",
     "--whatsapp-to",
     "5491100000000",
-    "--email-from",
-    "Test@Example.com",
 ]
 
 
@@ -46,13 +44,6 @@ def test_creates_env_file(env_path):
     assert "KAPSO_PHONE_NUMBER_ID=12345\n" in content
     assert "WHATSAPP_TO=5491100000000\n" in content
     assert "AGENTMAIL_INBOX_ID=\n" in content
-
-
-def test_email_from_lowercased(env_path):
-    result = runner.invoke(bootstrap_env.app, VALID_ARGS)
-
-    assert result.exit_code == 0
-    assert "EMAIL_FROM=test@example.com\n" in env_path.read_text()
 
 
 def test_skips_if_env_exists(env_path):
@@ -86,15 +77,13 @@ def test_strips_whitespace(env_path):
         "  12345  ",
         "--whatsapp-to",
         "  5491100000000  ",
-        "--email-from",
-        "  Test@Example.com  ",
     ]
     result = runner.invoke(bootstrap_env.app, args)
 
     assert result.exit_code == 0
     content = env_path.read_text()
     assert "AGENTMAIL_API_KEY=am_test_key\n" in content
-    assert "EMAIL_FROM=test@example.com\n" in content
+    assert "WHATSAPP_TO=5491100000000\n" in content
 
 
 def test_missing_required_args():
