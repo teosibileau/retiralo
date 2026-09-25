@@ -42,6 +42,8 @@ the host needs these system tools first:
 - [Poetry](https://python-poetry.org/) (`pipx install poetry`)
 - `libzbar` system library — macOS: `brew install zbar`; Ubuntu: `sudo apt-get install -y libzbar0`
 
+On macOS (Apple Silicon) Homebrew installs libzbar to `/opt/homebrew/lib`, which pyzbar's loader does not search. If QR generation fails with `ImportError: Unable to find zbar shared library`, prefix the command with `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib` (Intel Macs use `/usr/local/lib`).
+
 You'll also need accounts with:
 
 - Gmail (for the MercadoLibre notifications)

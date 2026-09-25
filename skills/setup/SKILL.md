@@ -27,6 +27,12 @@ missing, tell the user how to install them and wait before continuing:
 - **poetry** — `pipx install poetry`
 - **libzbar** — `brew install zbar` (macOS) or `sudo apt-get install -y libzbar0` (Ubuntu/Debian)
 
+On macOS, after installing, confirm the library is discoverable. If
+`generate_qr.py` later raises `ImportError: Unable to find zbar shared
+library`, the Homebrew lib dir is not on the loader path; work around it
+by prefixing QR generation with `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`
+(Intel Macs use `/usr/local/lib`).
+
 ## Step 2: Install Python dependencies
 
 ```sh
