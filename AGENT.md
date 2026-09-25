@@ -27,9 +27,23 @@ pyproject.toml                 # poetry project
   `agents/retiralo.md`.
 - All plugin-internal paths resolve against `${CLAUDE_PLUGIN_ROOT}`.
   Scripts run from the plugin root so poetry finds `pyproject.toml`:
+
   ```sh
   cd ${CLAUDE_PLUGIN_ROOT} && poetry run scripts/<name>.py ...
   ```
+
+- **Exception — `generate_qr.py` on macOS:** SIP strips `DYLD_*` vars
+  from `poetry run`, so pyzbar fails with `Unable to find zbar shared
+library` no matter how you prefix the env var. Run the venv python
+  directly instead:
+
+  ```sh
+  cd ${CLAUDE_PLUGIN_ROOT} && DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib \
+    "$(poetry env info --path)/bin/python" scripts/generate_qr.py --tracking <n>
+  ```
+
+  If `/opt/homebrew/lib/libzbar*` doesn't exist, `brew install zbar`
+  first. Details in `skills/generate-qr/SKILL.md`.
 
 ## Local dev loop
 
